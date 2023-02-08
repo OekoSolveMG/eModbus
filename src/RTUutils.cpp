@@ -123,37 +123,7 @@ uint32_t RTUutils::calculateInterval(HardwareSerial& s, uint32_t overwrite) {
 int RTUutils::UARTinit(HardwareSerial& serial, int thresholdBytes) {
   int rc = 0;
 #if NEED_UART_PATCH
-  // Is the threshold value valid? The UART FIFO is 128 bytes only
-  if (thresholdBytes > 0 && thresholdBytes < 128) {
-    // Yes, it is. Try to identify the Serial/Serial1/Serial2 the user has provided.
-    uart_dev_t *uart = nullptr;
-    uint8_t uart_num = 99;
-    if (&serial == &Serial) {
-      uart_num = 0;
-      uart = &UART0;
-    } else {
-      if (&serial == &Serial1) {
-        uart_num = 1;
-        uart = &UART1;
-      } else {
-        if (&serial == &Serial2) {
-          uart_num = 2;
-          uart = &UART2;
-        }
-      }
-    }
-    // Is it a defined serial?
-    if (uart_num != 99) {
-      // Yes. get the current value and set ours instead
-      rc = uart->conf1.rxfifo_full_thrhd;
-      uart->conf1.rxfifo_full_thrhd = thresholdBytes;
-      LOG_D("Serial%u FIFO threshold set to %d (was %d)\n", uart_num, thresholdBytes, rc);
-    } else {
-      LOG_W("Unable to identify serial\n");
-    }
-  } else {
-    LOG_E("Threshold must be between 1 and 127! (was %d)", thresholdBytes);
-  }
+  serial.setRxFIFOFull(thresholdBytes);
 #endif
   // Return the previous value in case someone likes to see it.
   return rc;
